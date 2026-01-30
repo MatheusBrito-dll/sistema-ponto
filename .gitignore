@@ -1,0 +1,20 @@
+# Node
+node_modules/
+npm-debug.log*
+yarn-error.log*
+
+# Vite / React
+dist/
+.vite/
+
+# Env
+.env
+.env.*
+
+# Docker volumes
+ponto_db_data/
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+.vscode/
