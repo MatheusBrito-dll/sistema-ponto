@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import "./App.css";
 
 function App() {
   const [login, setLogin] = useState("");
@@ -99,90 +100,120 @@ function App() {
       setMensagem("Erro de conexão com a API");
     }
   }
+
   function formatHora(valor) {
-  if (!valor) return "-";
-  const d = new Date(valor);
-  return d.toLocaleTimeString("pt-BR", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+    if (!valor) return "-";
+    const d = new Date(valor);
+    return d.toLocaleTimeString("pt-BR", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
   }
 
   return (
-    <div style={{
-  minHeight: "100vh",
-  background: "#121212",
-  color: "#eaeaea",
-  padding: 48,
-  fontFamily: "Inter, Arial, sans-serif"
-}}>
-  <div style={{
-    maxWidth: 820,
-    margin: "0 auto",
-    background: "rgba(255,255,255,0.04)",
-    border: "1px solid rgba(255,255,255,0.08)",
-    borderRadius: 18,
-    padding: 28
-  }}>
+    <div className="app">
+      <div className="app__glow" aria-hidden="true" />
+      <main className="app__container">
+        <header className="app__header">
+          <div>
+            <p className="app__eyebrow">Sistema de ponto</p>
+            <h1>Controle de jornada</h1>
+            <p className="app__subtitle">
+              Registre entradas e pausas com poucos cliques e acompanhe as
+              marcações do dia em tempo real.
+            </p>
+          </div>
+          <div className="app__badge">
+            <span>Hoje</span>
+            <strong>Fluxo rápido</strong>
+          </div>
+        </header>
 
-      <h1>Sistema de Ponto</h1>
+        <section className="card">
+          <div className="card__header">
+            <div>
+              <h2>Identificação</h2>
+              <p>Informe o login para carregar as marcações atuais.</p>
+            </div>
+            <div className="input">
+              <label htmlFor="login">Login do usuário</label>
+              <input
+                id="login"
+                type="text"
+                value={login}
+                onChange={(e) => setLogin(e.target.value)}
+                placeholder="ex: user1"
+              />
+            </div>
+          </div>
 
-      <div style={{ marginBottom: 20 }}>
-        <label>Login do usuário</label>
-        <br />
-        <input
-          type="text"
-          value={login}
-          onChange={(e) => setLogin(e.target.value)}
-          placeholder="ex: user1"
-          style={{ padding: 8, width: 220 }}
-        />
-      </div>
+          <div className="actions">
+            <button
+              className="btn btn--primary"
+              disabled={batidosHoje.ENTRADA}
+              onClick={() => baterPonto("ENTRADA")}
+            >
+              Entrada
+            </button>
 
-      <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-        <button
-          disabled={batidosHoje.ENTRADA}
-          onClick={() => baterPonto("ENTRADA")}
-        >
-          Entrada
-        </button>
+            <button
+              className="btn"
+              disabled={batidosHoje.SAIDA_ALMOCO}
+              onClick={() => baterPonto("SAIDA_ALMOCO")}
+            >
+              Saída Almoço
+            </button>
 
-        <button
-          disabled={batidosHoje.SAIDA_ALMOCO}
-          onClick={() => baterPonto("SAIDA_ALMOCO")}
-        >
-          Saída Almoço
-        </button>
+            <button
+              className="btn"
+              disabled={batidosHoje.VOLTA_ALMOCO}
+              onClick={() => baterPonto("VOLTA_ALMOCO")}
+            >
+              Volta Almoço
+            </button>
 
-        <button
-          disabled={batidosHoje.VOLTA_ALMOCO}
-          onClick={() => baterPonto("VOLTA_ALMOCO")}
-        >
-          Volta Almoço
-        </button>
+            <button
+              className="btn btn--ghost"
+              disabled={batidosHoje.SAIDA}
+              onClick={() => baterPonto("SAIDA")}
+            >
+              Saída
+            </button>
+          </div>
 
-        <button disabled={batidosHoje.SAIDA} onClick={() => baterPonto("SAIDA")}>
-          Saída
-        </button>
-      </div>
+          <div className="status">
+            <div>
+              <h3>Marcações de hoje</h3>
+              <p>Acompanhe o status do dia em um só lugar.</p>
+            </div>
+            <ul>
+              <li>
+                <span>Entrada</span>
+                <strong>{formatHora(horariosHoje.ENTRADA)}</strong>
+              </li>
+              <li>
+                <span>Saída Almoço</span>
+                <strong>{formatHora(horariosHoje.SAIDA_ALMOCO)}</strong>
+              </li>
+              <li>
+                <span>Volta Almoço</span>
+                <strong>{formatHora(horariosHoje.VOLTA_ALMOCO)}</strong>
+              </li>
+              <li>
+                <span>Saída</span>
+                <strong>{formatHora(horariosHoje.SAIDA)}</strong>
+              </li>
+            </ul>
+          </div>
 
-      <div style={{ marginTop: 30 }}>
-        <h3>Marcações de hoje</h3>
-        <li>Entrada: {formatHora(horariosHoje.ENTRADA)}</li>
-        <li>Saída Almoço: {formatHora(horariosHoje.SAIDA_ALMOCO)}</li>
-        <li>Volta Almoço: {formatHora(horariosHoje.VOLTA_ALMOCO)}</li>
-        <li>Saída: {formatHora(horariosHoje.SAIDA)}</li>
-
-      </div>
-
-      {mensagem && (
-        <div style={{ marginTop: 20 }}>
-          <strong>{mensagem}</strong>
-        </div>
-      )}
+          {mensagem && (
+            <div className="alert">
+              <strong>{mensagem}</strong>
+            </div>
+          )}
+        </section>
+      </main>
     </div>
-    </div>
-
   );
 }
 
