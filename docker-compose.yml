@@ -22,7 +22,7 @@ services:
       PORT: 3001
       DATABASE_URL: postgres://ponto_user:ponto_pass@db:5432/ponto
     ports:
-      - "0000:3001"
+      - "0000:3001:3001"
     depends_on:
       - db
     command: sh -c "npm install && node src/server.js"
