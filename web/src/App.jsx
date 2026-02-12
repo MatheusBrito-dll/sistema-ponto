@@ -1,73 +1,84 @@
 import { useEffect, useState } from "react";
 import "./App.css";
 
-function App() {
-  const [login, setLogin] = useState("");
-  const [mensagem, setMensagem] = useState("");
+const FLUXO_DIA = ["ENTRADA", "SAIDA_ALMOCO", "VOLTA_ALMOCO", "SAIDA"];
 
-  const [batidosHoje, setBatidosHoje] = useState({
+function getEstadoInicialBatidos() {
+  return {
     ENTRADA: false,
     SAIDA_ALMOCO: false,
     VOLTA_ALMOCO: false,
     SAIDA: false,
-  });
+  };
+}
 
-  const [horariosHoje, setHorariosHoje] = useState({
+function getEstadoInicialHorarios() {
+  return {
     ENTRADA: null,
     SAIDA_ALMOCO: null,
     VOLTA_ALMOCO: null,
     SAIDA: null,
-  });
+  };
+}
 
-  useEffect(() => {
-    async function carregarBatidos() {
-      if (!login) {
-        setBatidosHoje({
-          ENTRADA: false,
-          SAIDA_ALMOCO: false,
-          VOLTA_ALMOCO: false,
-          SAIDA: false,
-        });
-        setHorariosHoje({
-          ENTRADA: null,
-          SAIDA_ALMOCO: null,
-          VOLTA_ALMOCO: null,
-          SAIDA: null,
-        });
+function getProximoTipo(batidos) {
+  return FLUXO_DIA.find((tipo) => !batidos[tipo]) ?? null;
+}
+
+function App() {
+  const [login, setLogin] = useState("");
+  const [mensagem, setMensagem] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const [batidosHoje, setBatidosHoje] = useState(getEstadoInicialBatidos);
+
+  const [horariosHoje, setHorariosHoje] = useState(getEstadoInicialHorarios);
+
+  const proximoTipo = getProximoTipo(batidosHoje);
+
+  async function carregarBatidosHoje(loginAtual) {
+    if (!loginAtual) {
+      setBatidosHoje(getEstadoInicialBatidos());
+      setHorariosHoje(getEstadoInicialHorarios());
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const resp = await fetch(
+        `http://localhost:3001/pontos/hoje?login=${encodeURIComponent(loginAtual)}`
+      );
+      const data = await resp.json();
+
+      if (!resp.ok) {
+        setMensagem(data.error || "Erro ao carregar marcações de hoje");
         return;
       }
 
-      try {
-        const resp = await fetch(
-          `http://localhost:3001/pontos/hoje?login=${encodeURIComponent(login)}`
-        );
-        const data = await resp.json();
+      setMensagem("");
+      setBatidosHoje({
+        ENTRADA: !!data.batidos?.ENTRADA,
+        SAIDA_ALMOCO: !!data.batidos?.SAIDA_ALMOCO,
+        VOLTA_ALMOCO: !!data.batidos?.VOLTA_ALMOCO,
+        SAIDA: !!data.batidos?.SAIDA,
+      });
 
-        if (!resp.ok) {
-          setMensagem(data.error || "Erro ao carregar marcações de hoje");
-          return;
-        }
-
-        setMensagem("");
-        setBatidosHoje({
-          ENTRADA: !!data.batidos?.ENTRADA,
-          SAIDA_ALMOCO: !!data.batidos?.SAIDA_ALMOCO,
-          VOLTA_ALMOCO: !!data.batidos?.VOLTA_ALMOCO,
-          SAIDA: !!data.batidos?.SAIDA,
-        });
-
-        setHorariosHoje({
-          ENTRADA: data.horarios?.ENTRADA,
-          SAIDA_ALMOCO: data.horarios?.SAIDA_ALMOCO,
-          VOLTA_ALMOCO: data.horarios?.VOLTA_ALMOCO,
-          SAIDA: data.horarios?.SAIDA,
-        });
-      } catch (err) {
-        setMensagem("Erro de conexão ao carregar marcações de hoje");
-      }
+      setHorariosHoje({
+        ENTRADA: data.horarios?.ENTRADA,
+        SAIDA_ALMOCO: data.horarios?.SAIDA_ALMOCO,
+        VOLTA_ALMOCO: data.horarios?.VOLTA_ALMOCO,
+        SAIDA: data.horarios?.SAIDA,
+      });
+    } catch {
+      setMensagem("Erro de conexão ao carregar marcações de hoje");
+    } finally {
+      setLoading(false);
     }
+  }
 
-    carregarBatidos();
+  useEffect(() => {
+    carregarBatidosHoje(login);
   }, [login]);
 
   async function baterPonto(tipo) {
@@ -77,6 +88,8 @@ function App() {
     }
 
     try {
+      setLoading(true);
+
       const resp = await fetch("http://localhost:3001/pontos/bater", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -91,14 +104,18 @@ function App() {
       }
 
       setMensagem(`Ponto registrado: ${tipo}`);
-      setBatidosHoje((prev) => ({ ...prev, [tipo]: true }));
-      setHorariosHoje((prev) => ({
-        ...prev,
-        [tipo]: new Date().toISOString(),
-      }));
-    } catch (err) {
+      await carregarBatidosHoje(login);
+    } catch {
       setMensagem("Erro de conexão com a API");
+    } finally {
+      setLoading(false);
     }
+  }
+
+  function getButtonClass(tipo) {
+    if (batidosHoje[tipo]) return "btnDone";
+    if (tipo === proximoTipo) return "btnActive";
+    return "btnIdle";
   }
 
   function formatHora(valor) {
@@ -149,32 +166,32 @@ function App() {
 
           <div className="actions">
             <button
-              className={`btn btn--primary ${batidosHoje.ENTRADA ? "disabled" : ""}`}
-              disabled={batidosHoje.ENTRADA}
+              className={`btn ${getButtonClass("ENTRADA")}`}
+              disabled={batidosHoje.ENTRADA || loading}
               onClick={() => baterPonto("ENTRADA")}
             >
               Entrada
             </button>
 
             <button
-              className={`btn ${batidosHoje.SAIDA_ALMOCO ? "disabled" : ""}`}
-              disabled={batidosHoje.SAIDA_ALMOCO}
+              className={`btn ${getButtonClass("SAIDA_ALMOCO")}`}
+              disabled={batidosHoje.SAIDA_ALMOCO || loading}
               onClick={() => baterPonto("SAIDA_ALMOCO")}
             >
               Saída Almoço
             </button>
 
             <button
-              className={`btn ${batidosHoje.VOLTA_ALMOCO ? "disabled" : ""}`}
-              disabled={batidosHoje.VOLTA_ALMOCO}
+              className={`btn ${getButtonClass("VOLTA_ALMOCO")}`}
+              disabled={batidosHoje.VOLTA_ALMOCO || loading}
               onClick={() => baterPonto("VOLTA_ALMOCO")}
             >
               Volta Almoço
             </button>
 
             <button
-              className={`btn btn--ghost ${batidosHoje.SAIDA ? "disabled" : ""}`}
-              disabled={batidosHoje.SAIDA}
+              className={`btn ${getButtonClass("SAIDA")}`}
+              disabled={batidosHoje.SAIDA || loading}
               onClick={() => baterPonto("SAIDA")}
             >
               Saída
