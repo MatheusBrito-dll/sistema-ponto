@@ -149,7 +149,7 @@ function App() {
 
           <div className="actions">
             <button
-              className="btn btn--primary"
+              className={`btn btn--primary ${batidosHoje.ENTRADA ? "disabled" : ""}`}
               disabled={batidosHoje.ENTRADA}
               onClick={() => baterPonto("ENTRADA")}
             >
@@ -157,7 +157,7 @@ function App() {
             </button>
 
             <button
-              className="btn"
+              className={`btn ${batidosHoje.SAIDA_ALMOCO ? "disabled" : ""}`}
               disabled={batidosHoje.SAIDA_ALMOCO}
               onClick={() => baterPonto("SAIDA_ALMOCO")}
             >
@@ -165,7 +165,7 @@ function App() {
             </button>
 
             <button
-              className="btn"
+              className={`btn ${batidosHoje.VOLTA_ALMOCO ? "disabled" : ""}`}
               disabled={batidosHoje.VOLTA_ALMOCO}
               onClick={() => baterPonto("VOLTA_ALMOCO")}
             >
@@ -173,7 +173,7 @@ function App() {
             </button>
 
             <button
-              className="btn btn--ghost"
+              className={`btn btn--ghost ${batidosHoje.SAIDA ? "disabled" : ""}`}
               disabled={batidosHoje.SAIDA}
               onClick={() => baterPonto("SAIDA")}
             >
