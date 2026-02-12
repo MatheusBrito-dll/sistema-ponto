@@ -164,6 +164,23 @@
   box-shadow: none;
 }
 
+.btnActive {
+  background: rgb(4, 158, 220);
+  color: #0b1020;
+}
+
+.btnDone {
+  background: rgba(120, 133, 165, 0.28);
+  border-color: rgba(197, 207, 228, 0.35);
+  color: rgba(231, 236, 243, 0.7);
+  box-shadow: none;
+}
+
+.btnIdle {
+  background: rgba(255, 255, 255, 0.08);
+  color: #f6f8fd;
+}
+
 .btn--primary {
   background: rgb(4, 158, 220);
   color: #0b1020;
